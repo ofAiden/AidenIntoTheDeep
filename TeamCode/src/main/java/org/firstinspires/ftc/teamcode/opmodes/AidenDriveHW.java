@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp
 public class AidenDriveHW extends LinearOpMode {
+
     @Override
     public void runOpMode() {
         Globals.RUNMODE = RunMode.TELEOP;
@@ -19,37 +20,34 @@ public class AidenDriveHW extends LinearOpMode {
 
         Robot robot = new Robot(hardwareMap);
         Sensors sensors = new Sensors(robot);
-        AidenRobot aidenRobot = new AidenRobot(hardwareMap,sensors);
+        AidenRobot aidenRobot = new AidenRobot(hardwareMap, sensors);
 
 
 
         telemetry.addData("State", "READY TO START");
         telemetry.update();
 
+        double x, y, angle, leftFrontPower, rightFrontPower, leftBackPower, rightBackPower, motormax,max1,max2;
         while (opModeInInit()) {
-            double y = gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x;
-            double angle = gamepad1.right_stick_x;
+            robot.update();
+        }
+        while (opModeIsActive()){
+            y = gamepad1.left_stick_x;
+            x = -gamepad1.left_stick_y;
+            angle = gamepad1.right_stick_x;
+            max1 = Math.max(Math.abs(y), Math.abs(x));
+            max2 = Math.max(Math.abs(angle),1.0);
+            motormax = Math.max(max1,max2);
 
-            double leftFrontPower = y + x + angle;
-            double rightFrontPower = y -x - angle;
-            double leftBackPower = y - x - angle;
-            double rightBackPower = y + x - angle;
+            leftFrontPower = (y + x + angle)/motormax;
+            rightFrontPower = (y -x - angle)/motormax;
+            leftBackPower = (y - x - angle)/motormax;
+            rightBackPower = (y + x - angle)/motormax;
 
             aidenRobot.leftFront.setTargetPower(leftFrontPower);
             aidenRobot.leftBack.setTargetPower(leftBackPower);
             aidenRobot.rightFront.setTargetPower(rightFrontPower);
             aidenRobot.rightBack.setTargetPower(rightBackPower);
-
-            robot.update();
-        }
-
-        while (!isStopRequested()) {
-            robot.drivetrain.drive(gamepad1, false);
-
-            robot.update();
-
-            telemetry.update();
         }
 
     }
