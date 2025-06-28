@@ -27,7 +27,7 @@ public class AidenDriveHW extends LinearOpMode {
         telemetry.addData("State", "READY TO START");
         telemetry.update();
 
-        double x, y, angle, leftFrontPower, rightFrontPower, leftBackPower, rightBackPower, motormax,max1,max2;
+        double x, y, angle, leftFrontPower, rightFrontPower, leftBackPower, rightBackPower, motormax;
         while (opModeInInit()) {
             robot.update();
         }
@@ -35,9 +35,7 @@ public class AidenDriveHW extends LinearOpMode {
             y = gamepad1.left_stick_x;
             x = -gamepad1.left_stick_y;
             angle = gamepad1.right_stick_x;
-            max1 = Math.max(Math.abs(y), Math.abs(x));
-            max2 = Math.max(Math.abs(angle),1.0);
-            motormax = Math.max(max1,max2);
+            motormax = Math.max(1.0,Math.abs(y)+Math.abs(x)+Math.abs(angle));
 
             leftFrontPower = (y + x + angle)/motormax;
             rightFrontPower = (y -x - angle)/motormax;
