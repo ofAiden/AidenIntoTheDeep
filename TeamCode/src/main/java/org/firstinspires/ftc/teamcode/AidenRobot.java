@@ -4,10 +4,13 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.subsystems.intake.AidenIntake;
 import org.firstinspires.ftc.teamcode.utils.priority.HardwareQueue;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.sensors.Sensors;
-import java.util.Arrays;
+import org.firstinspires.ftc.teamcode.subsystems.intake.AidenIntake;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.AidenDeposit;
+
 
 
 public class AidenRobot {
@@ -17,6 +20,8 @@ public class AidenRobot {
     public PriorityMotor rightFront;
     public HardwareMap hardwareMap;
     public HardwareQueue hardwareQueue;
+    public final AidenIntake intake;
+    public final AidenDeposit deposit;
 
 
     public AidenRobot(HardwareMap hardwareMap, Sensors sensors) {
@@ -32,6 +37,14 @@ public class AidenRobot {
         hardwareQueue.addDevice(rightBack);
         rightFront.motor[0].setDirection(DcMotor.Direction.REVERSE);
         rightBack.motor[0].setDirection(DcMotor.Direction.REVERSE);
+        deposit = new AidenDeposit(this);
+        intake = new AidenIntake(this);
+    }
+
+    public void update(){
+        intake.update();
+        deposit.update();
+        hardwareQueue.update();
     }
 
 }

@@ -24,6 +24,12 @@ public class HardwareQueue {
         devices.add(device);
     }
 
+    public void addDevices(PriorityDevice... devices) {
+        for (PriorityDevice device : devices) {
+            this.addDevice(device);
+        }
+    }
+
     public void update() {
         for (PriorityDevice device : devices) {
             device.resetUpdateBoolean();
