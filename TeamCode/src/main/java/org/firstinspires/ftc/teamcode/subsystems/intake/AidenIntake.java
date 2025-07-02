@@ -5,8 +5,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.AidenRobot;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
+import org.firstinspires.ftc.teamcode.sensors.AidenSensor;
+
 
 public class AidenIntake {
 
@@ -14,18 +17,22 @@ public class AidenIntake {
     private nPriorityServo extendo1, extendo2, vbar;
     private AidenRobot robot;
 
-    public static PID TurretPid = new PID(1, 0.5,0.5); //tune ts
+    public static PID TurretPid = new PID(1, 0,0); //tune ts
 
     public double turret_error;
     public double turret_encoder_position;
 
+    public boolean deposit_in_position = false;
+
     //private double intake_motor_speed = 1.0; //tune later
 
     public enum IntakeStates {
-        EXTENSION,
         INTAKEING,
         IDLEING,
-        REVERSE
+        REVERSE,
+        WAIT_FOR_DEPOSIT,
+        TRANSFER,
+        GET_READY_TO_INTAKE
     }
 
     public IntakeStates intakeStates = IntakeStates.IDLEING;
@@ -44,19 +51,44 @@ public class AidenIntake {
     public void update() {
 
         switch (intakeStates) {
-            case EXTENSION:
-                //dostuff
-                break;
-
             case INTAKEING:
+                if(deposit_in_position) {
+
+                    //go to the point
+
+                    set_intake_motor(1);
+                    // if color sensor is read and works
+
+                    intakeStates = IntakeStates.WAIT_FOR_DEPOSIT;
+
+                } else {
+                    intakeStates = IntakeStates.GET_READY_TO_INTAKE;
+                }
                 break;
 
             case IDLEING:
                 //turn off motor
+                set_intake_motor(0);
                 break;
+
             case REVERSE:
                 //reverse motor
+                set_intake_motor(-1);
                 break;
+
+
+            case WAIT_FOR_DEPOSIT:
+                //call deposit to do stuff
+
+            case TRANSFER:
+                // set_horizontal_extension();
+                //call depsoit to deposit sample/pixel
+
+            case GET_READY_TO_INTAKE:
+                //move turret, vertical slides, horizontal slides
+                set_turret_position(TargetPosition, 0.2);
+                //set_vertical_extension(); fake vertical extension function
+                //set_horizontal_extension(); fake vertical extension function
 
             }
         }
@@ -67,20 +99,19 @@ public class AidenIntake {
 
         public void set_vbar_position(double position_rad, double power) {
             vbar.setTargetAngle(position_rad, power);
+            //use a middle variable for all set methods
         }
 
-        public void set_turret_position (double position, double power) {
+        public void set_turret_position (double target_position, double power) {
             //pull encoder position
-            turret_error = position - turret_encoder_position;
-            turret.setTargetPosition();
+
+            target_position = Utils.minMaxClip(target_position, -Math.PI/3, Math.PI/3);
+            turret_encoder_position = robot.sensor.getTurretAngle();
+
+            turret_error = target_position - turret_encoder_position;
+
+            turret.setTargetPower(TurretPid.update(turret_error, -1, 1) * power);
         }
-
-
-
-
-
-
-
 
     }
 
