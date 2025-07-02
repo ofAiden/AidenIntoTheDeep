@@ -20,7 +20,7 @@ public class AidenDriveHW extends LinearOpMode {
 
         Robot robot = new Robot(hardwareMap);
         Sensors sensors = new Sensors(robot);
-        AidenRobot aidenRobot = new AidenRobot(hardwareMap, sensors);
+        AidenRobot aidenRobot = new AidenRobot(hardwareMap );
 
 
 
