@@ -7,6 +7,7 @@ public class AidenSensor {
     private int extendo_encoder;
     public static double extendoInchesPerTick = 19.0 / 467;
     private int turretZero;
+
     public double turretAnglePerTick;
 
     private double voltage;
