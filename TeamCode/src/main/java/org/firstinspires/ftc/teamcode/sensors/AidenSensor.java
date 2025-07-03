@@ -4,7 +4,8 @@ import org.firstinspires.ftc.teamcode.AidenRobot;
 
 public class AidenSensor {
     private final AidenRobot robot;
-    private int turretEncoder;
+    private int extendo_encoder;
+    public static double extendoInchesPerTick = 19.0 / 467;
     private int turretZero;
     public double turretAnglePerTick;
 
@@ -17,13 +18,14 @@ public class AidenSensor {
         this.robot = robot;
     }
     public void update(){
-        turretEncoder = ((PriorityMotor) robot.hardwareQueue.getDevice("turret")).motor[0].getCurrentPosition();
+        extendo_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
         if((System.currentTimeMillis()-lastVoltageUpdatedTime)>voltageUpdateTime){
             voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
             lastVoltageUpdatedTime = System.currentTimeMillis() ;
         }
     }
-    public double getTurretAngle(){
-        return (turretEncoder-turretZero) * turretAnglePerTick;
+
+    public double get_extendo_pos() {
+        return extendo_encoder * extendoInchesPerTick;
     }
 }
