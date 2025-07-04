@@ -2,6 +2,14 @@ package org.firstinspires.ftc.teamcode.sensors;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.AidenRobot;
 
+
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+
+
 public class AidenSensor {
     private final AidenRobot robot;
     //sensor for specific things
