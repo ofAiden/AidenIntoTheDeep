@@ -127,7 +127,7 @@ public class AidenDeposit {
 
         // 3. Recalculate IK from current state
         theta = Math.atan((target_y/2)/target_x);
-        slide_distance = Math.sqrt((target_y/2)*(target_y/2) + target_x*target_x;
+        slide_distance = Math.sqrt((target_y/2)*(target_y/2) + target_x*target_x);
 
         // 4. Command actuators toward new targets
         if(Math.abs(current_y - target_y) > 0.5 && Math.abs(current_x - target_x) > 0.5){
