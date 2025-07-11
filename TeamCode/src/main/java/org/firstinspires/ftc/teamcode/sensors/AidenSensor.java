@@ -50,5 +50,4 @@ public class AidenSensor {
         return extendo_encoder * extendoInchesPerTick;
     }
     public double get_armslide_pos() {return(vslide_encoder-armslide_zero)* armslides_inches_per_tick;}
-    public double get
 }
