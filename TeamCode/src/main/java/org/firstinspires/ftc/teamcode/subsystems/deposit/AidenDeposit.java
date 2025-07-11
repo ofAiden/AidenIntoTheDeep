@@ -13,19 +13,34 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 public class AidenDeposit {
 
     private PriorityMotor vslide1,vslide2,extendo;
-    private nPriorityServo vbar1, vbar2, claw, wrist;
+    private nPriorityServo vbar, claw, wrist, slide, arm;
     private AidenRobot robot;
 
     public static PID vslidesPID = new PID(1, 0,0); //needs to be tuned
+    public static PID armslidesPID = new PID(1, 0,0); //needs to be tuned
+
 
     public double vslides_error;
     public double vslides_current_pos;
 
+    public double armslides_error;
+    public double armslides_current_pos = slide.getCurrentAngle();
+
     public double extendo_current_pos = robot.sensor.get_extendo_pos();
     public double vslides_deposit_pos;
 
-    public double wrist_length;
-    public double wrist_offset;
+    public double current_vslides;
+    public double current_arm_angle;
+    public double current_extendo;
+    public double current_x;
+    public double current_y;
+    public double theta;
+    public double slide_distance;
+
+    public double pixel_y;
+    public double pixel_x;
+    public double sample_y;
+    public double sample_x;
 
 
 
@@ -36,15 +51,17 @@ public class AidenDeposit {
         extendo = new PriorityMotor(robot.hardwareMap.get(DcMotorEx.class, "extendo"), "extendo", 4, 5, null);
         claw = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "claw")}, "claw", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 2, 5);
         wrist = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "wrist")}, "wrist", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 3, 5);
-        vbar1 = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "vbar1")}, "vbar1", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 2, 5);
-        vbar2 = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "vbar2")}, "vbar2", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 2, 5);
-        robot.hardwareQueue.addDevices(vslide1,vslide2,extendo,vbar1,vbar2,claw,wrist);
+        vbar = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "vbar1"),robot.hardwareMap.get(Servo.class, "vbar2")}, "vbar", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{true, false}, 2, 5);
+        slide = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "slide1"),robot.hardwareMap.get(Servo.class, "slide2")}, "slide", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{true, false}, 2, 5);
+        arm = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "arm")}, "arm", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 3, 5);
+
+        robot.hardwareQueue.addDevices(vslide1,vslide2,extendo,vbar,claw,wrist,slide, arm);
     }
 
     public enum DepositStates {
         TRANSFER,
-        HOLD,
-        DEPOSIT,
+        DEPOSIT_SAMPLE,
+        DEPOSIT_PIXEL,
         IDLE
     }
 
@@ -65,14 +82,12 @@ public class AidenDeposit {
                     depositStates = DepositStates.TRANSFER;
                 }
                 break;
-            case HOLD:
-                this.set_vslides_pos(vslides_deposit_pos,1);
-                this.set_wrist_angle(-Math.PI/4,1);
-                if(vslides_error > 0.5 ){
-                    depositStates = DepositStates.DEPOSIT;
-                }
+            case DEPOSIT_SAMPLE:
+                this.updateDepositIK(sample_x,sample_y);
                 break;
-            case DEPOSIT:
+            case DEPOSIT_PIXEL:
+                this.updateDepositIK(pixel_x,pixel_y);
+                break;
 
         }
 
@@ -83,31 +98,45 @@ public class AidenDeposit {
         vslides_error = target_pos - vslides_current_pos;
 
         vslide1.setTargetPower(vslidesPID.update(vslides_error, -1, 1) * power);
+        vslide2.setTargetPower(vslidesPID.update(vslides_error, -1, 1) * power);
+    }
+
+    public void set_armslides_pos(double target_pos, double power){
+        armslides_current_pos = slide.getCurrentAngle();
+
+        armslides_error = target_pos - armslides_current_pos;
+
+        slide.setTargetPos(armslidesPID.update(armslides_error, -1, 1) * power,1);
     }
     public void set_wrist_angle(double target_angle, double power){ wrist.setTargetAngle(target_angle,power); }
 
     public void set_claw_pos(double target_angle) { claw.setTargetAngle(target_angle);}
 
-    private double[] calculateIK(double deposit_height) {
-        // Use current slide height to minimize movement
-        double target_height= robot.sensor.get_vslides_pos();
+    public void updateDepositIK(double target_x, double target_y) {
+        // 1. Read actual actuator positions
+        current_vslides = robot.sensor.get_vslides_pos();
+        current_arm_angle = arm.getCurrentAngle();
+        current_extendo = slide.getCurrentAngle();
 
-        // Calculate wrist angle
-        double sin_theta = (deposit_height - target_height) / wrist_length;
-        double theta_w;
-        if (Math.abs(sin_theta) > 1.0) {
-            // Adjust slide height to maximize wrist range
-           target_height= deposit_height - wrist_length * (sin_theta > 0 ? 1 : -1);
-           sin_theta = (deposit_height - target_height) / wrist_length;
+        //2. Calculate the current X, and Y
+        current_y = current_vslides + Math.sin(current_arm_angle) * current_extendo;
+        current_x = Math.cos(current_arm_angle) * current_extendo;
+
+        target_x -= current_x;
+        target_y -= current_y;
+
+        // 3. Recalculate IK from current state
+        theta = Math.atan((target_y/2)/target_x);
+        slide_distance = Math.sqrt((target_y/2)*(target_y/2) + target_x*target_x;
+
+        // 4. Command actuators toward new targets
+        if(Math.abs(current_y - target_y) > 0.5 && Math.abs(current_x - target_x) > 0.5){
+            set_vslides_pos(target_y/2,1); //assuming that slides work by like doing a targety/2 after its movements.
+            arm.setTargetPos(theta, 1); //assuming that the arm angle doesn't change
+            set_armslides_pos(slide_distance,1); //assuming that the slides keep the previous, and add this onto it this is what i meant for the vslides too
+        } else{
+            set_claw_pos(1); //assuming that open claw is 1
         }
-        theta_w = Math.asin(sin_theta);
-
-
-        // Adjust wrist angle for vertical pixel orientation
-        double adjusted_theta_w = theta_w - wrist_offset;
-        this.set_vslides_pos(target_height,1);
-        this.set_wrist_angle(adjusted_theta_w,1);
     }
-
 
 }

@@ -19,7 +19,11 @@ public class AidenSensor {
 
     private int vslide_encoder;
     public static double vslides_inches_per_tick;
-    private int vslide_zero
+    private int vslide_zero;
+
+    private int armslide_encoder;
+    public static double armslides_inches_per_tick;
+    private int armslide_zero;
 
     public double turretAnglePerTick;
 
@@ -33,7 +37,9 @@ public class AidenSensor {
     }
     public void update(){
         extendo_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
-        vslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
+        vslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("vslide")).motor[0].getCurrentPosition();
+        armslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
+
         if((System.currentTimeMillis()-lastVoltageUpdatedTime)>voltageUpdateTime){
             voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
             lastVoltageUpdatedTime = System.currentTimeMillis() ;
@@ -43,4 +49,6 @@ public class AidenSensor {
     public double get_extendo_pos() {
         return extendo_encoder * extendoInchesPerTick;
     }
+    public double get_armslide_pos() {return(vslide_encoder-armslide_zero)* armslides_inches_per_tick;}
+    public double get
 }
