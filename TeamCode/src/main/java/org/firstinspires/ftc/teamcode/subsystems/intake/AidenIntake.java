@@ -26,6 +26,8 @@ public class AidenIntake {
     private double extendo_pow = 0;
     private double extendo_keep_in_pow = -0.2;
 
+    public boolean transfer_ready;
+
 
 
 
@@ -83,6 +85,7 @@ public class AidenIntake {
 
             case TRANSFER:
                 //do transfer stuff
+                transfer_ready = true;
             case REVERSE:
                 set_intake_motor_power(-1); // tune this
 
