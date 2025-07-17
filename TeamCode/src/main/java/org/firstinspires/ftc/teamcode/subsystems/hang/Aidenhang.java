@@ -13,7 +13,8 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 public class Aidenhang {
 
     private AidenRobot robot;
-    private PriorityMotor vslide;
+    private PriorityMotor ;
+    private nPriorityServo pto;
     private double[] vslide_multiplier = {1,-1};
     private DcMotorEx[] vslides = {robot.hardwareMap.get(DcMotorEx.class, "vslide1"), robot.hardwareMap.get(DcMotorEx.class, "vslide2")};
 

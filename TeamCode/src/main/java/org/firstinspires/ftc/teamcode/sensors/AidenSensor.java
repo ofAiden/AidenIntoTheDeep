@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import java.util.ArrayList;
 
 
 public class AidenSensor {
@@ -25,6 +26,9 @@ public class AidenSensor {
     public static double armslides_inches_per_tick;
     private int armslide_zero;
 
+    List<double> drive_encoder = new ArrayList<>();    public static double drive_inches_per_tick;
+    private int drive_zero;
+
     public double turretAnglePerTick;
 
     private double voltage;
@@ -39,6 +43,10 @@ public class AidenSensor {
         extendo_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
         vslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("vslide")).motor[0].getCurrentPosition();
         armslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
+        drive_encoder.add(((PriorityMotor) robot.hardwareQueue.getDevice("backRight")).motor[0].getCurrentPosition());
+        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("backLeft")).motor[0].getCurrentPosition();
+        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("frontRight")).motor[0].getCurrentPosition();
+        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("frontLeft")).motor[0].getCurrentPosition();
 
         if((System.currentTimeMillis()-lastVoltageUpdatedTime)>voltageUpdateTime){
             voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
@@ -50,4 +58,5 @@ public class AidenSensor {
         return extendo_encoder * extendoInchesPerTick;
     }
     public double get_armslide_pos() {return(vslide_encoder-armslide_zero)* armslides_inches_per_tick;}
+    public double get_drive_pos() {return(drive_encoder)}
 }
