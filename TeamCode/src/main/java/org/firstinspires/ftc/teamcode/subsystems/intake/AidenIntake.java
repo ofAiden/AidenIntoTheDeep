@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.AidenDeposit;
 
 
 public class AidenIntake {
@@ -16,6 +17,7 @@ public class AidenIntake {
     private final PriorityMotor intake_motor;
     private final nPriorityServo pivot;
     private final AidenRobot robot;
+    private AidenDeposit deposit;
 
     public static PID extendo_pid = new PID(1, 0, 0); //tune ts
 

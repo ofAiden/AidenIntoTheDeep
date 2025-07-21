@@ -9,41 +9,33 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.subsystems.deposit.AidenDeposit;
 
 public class Aidenhang {
 
     private AidenRobot robot;
-    private PriorityMotor vslide;
+    private AidenDeposit deposit;
     private nPriorityServo pto;
-    private double[] vslide_multiplier = {1,-1};
-    private DcMotorEx[] vslides = {robot.hardwareMap.get(DcMotorEx.class, "vslide1"), robot.hardwareMap.get(DcMotorEx.class, "vslide2")};
 
-    public static PID vslidesPID = new PID(1, 0,0); //needs to be tuned
-
-    public double vslides_error;
-    public double vslides_current_pos;
     public double pi = Math.PI;
 
     //variables that should be found when the robot is built
-    public double vslide_zero;
     public double hang_height;
-    public boolean hang_ready = false;
-
     public double engage_pto;
     public double disengage_pto;
 
     public Aidenhang(AidenRobot robot) {
         this.robot = robot;
-        vslide = new PriorityMotor(vslides, "vslide", 4, 5,vslide_multiplier, null);
         pto = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "wrist")}, "wrist", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 3, 5);
-        robot.hardwareQueue.addDevices(vslide);
+        robot.hardwareQueue.addDevices(pto);
     }
 
     public enum HangStates{
         IDLE,
         HANG_READY,
         HANG_RETRACT,
-        HANG
+        HANG,
+        HANG_STOP
     }
     public HangStates hangStates = HangStates.IDLE;
 
@@ -56,7 +48,7 @@ public class Aidenhang {
 
             case HANG_READY:
                 set_pto(true);
-                if(hang_ready){
+                if(deposit.hang_ready){
                     hangStates = HangStates.HANG;
                 }
                 break;
@@ -64,25 +56,21 @@ public class Aidenhang {
             case HANG:
                 robot.rightBack.setTargetPower(1);
                 robot.leftBack.setTargetPower(1);
-                set_vslides_pos(hang_height);
-                if(hang_height - vslides_current_pos<= 0.5){
-                    hangStates = HangStates.HANG_RETRACT;
+                deposit.set_vslides_pos(hang_height);
+                if(hang_height - deposit.vslides_current_pos<= 0.5){
+                    hangStates = HangStates.HANG_STOP;
                 }
                 break;
-
+            case HANG_STOP:
+                robot.leftBack.setTargetPower(0);
+                robot.rightBack.setTargetPower(0);
             case HANG_RETRACT:
                 set_pto(false);
-                set_vslides_pos(vslide_zero);
+                deposit.set_vslides_pos(deposit.vslides_zero);
                 break;
         }
     }
-    public void set_vslides_pos(double target_pos){
-        vslides_current_pos = robot.sensor.get_vslides_pos();
 
-        vslides_error = target_pos - vslides_current_pos;
-
-        vslide.setTargetPower(vslidesPID.update(vslides_error, -1, 1));
-    }
     public void set_pto(boolean state){
         if(state){
             pto.setTargetAngle(engage_pto);

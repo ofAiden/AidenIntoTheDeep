@@ -8,11 +8,13 @@ import org.firstinspires.ftc.teamcode.utils.Utils;
 import org.firstinspires.ftc.teamcode.utils.priority.PriorityMotor;
 import org.firstinspires.ftc.teamcode.utils.priority.nPriorityServo;
 import org.firstinspires.ftc.teamcode.utils.PID;
+import org.firstinspires.ftc.teamcode.subsystems.intake.AidenIntake;
 
 
 public class AidenDeposit {
 
     private AidenRobot robot;
+    private AidenIntake intake;
     private PriorityMotor vslide,extendo;
     private DcMotorEx[] vslides = {robot.hardwareMap.get(DcMotorEx.class, "vslide1"), robot.hardwareMap.get(DcMotorEx.class, "vslide2")};
     private double[] vslide_multiplier = {1,-1};
@@ -34,6 +36,7 @@ public class AidenDeposit {
     public double vslides_zero;
     public double armslides_zero;
     public double transfer_angle;
+    public boolean hang_ready;
 
 
     public double vslides_error;
@@ -77,7 +80,8 @@ public class AidenDeposit {
         DEPOSIT_PIXEL_READY,
         DEPOSIT_SAMPLE_READY,
         TRANSFER_READY,
-        IDLE
+        IDLE,
+        HANG_READY
     }
 
     public DepositStates depositStates = DepositStates.IDLE;
@@ -90,7 +94,7 @@ public class AidenDeposit {
                 this.set_arm_angle(transfer_angle);
                 break;
             case TRANSFER_READY:
-                if(transfer_ready == true){
+                if(intake.transfer_ready == true){
                     //transfer_ready would be a boolean that is kept from the intake where only if the intake is ready to transfer we can go into the actions in this state.
                     this.set_vslides_pos(vslides_zero);
                     this.set_arm_angle(transfer_angle);
@@ -119,6 +123,13 @@ public class AidenDeposit {
             case DEPOSIT_SAMPLE:
                 this.set_claw_pos(open_claw);
                 break;
+            case HANG_READY:
+                this.set_vslides_pos(vslides_zero);
+                extendo_target_pos = 0;
+                intake.update_extendo();
+                this.set_arm_angle(pi);
+                this.set_armslides_pos(armslides_zero);
+                hang_ready = true;
         }
 
     }
