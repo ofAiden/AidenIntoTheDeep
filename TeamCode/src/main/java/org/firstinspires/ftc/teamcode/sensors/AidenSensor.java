@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class AidenSensor {
@@ -26,7 +28,8 @@ public class AidenSensor {
     public static double armslides_inches_per_tick;
     private int armslide_zero;
 
-    List<double> drive_encoder = new ArrayList<>();    public static double drive_inches_per_tick;
+    List<Integer> drive_encoder = new ArrayList<>(Arrays.asList(0,0,0,0));
+    public static double drive_inches_per_tick;
     private int drive_zero;
 
     public double turretAnglePerTick;
@@ -43,10 +46,10 @@ public class AidenSensor {
         extendo_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
         vslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("vslide")).motor[0].getCurrentPosition();
         armslide_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("extendo")).motor[0].getCurrentPosition();
-        drive_encoder.add(((PriorityMotor) robot.hardwareQueue.getDevice("backRight")).motor[0].getCurrentPosition());
-        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("backLeft")).motor[0].getCurrentPosition();
-        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("frontRight")).motor[0].getCurrentPosition();
-        drive_encoder = ((PriorityMotor) robot.hardwareQueue.getDevice("frontLeft")).motor[0].getCurrentPosition();
+        drive_encoder.set(0,((PriorityMotor) robot.hardwareQueue.getDevice("backRight")).motor[0].getCurrentPosition());
+        drive_encoder.set(1,((PriorityMotor) robot.hardwareQueue.getDevice("backLeft")).motor[0].getCurrentPosition());
+        drive_encoder.set(2,((PriorityMotor) robot.hardwareQueue.getDevice("frontRight")).motor[0].getCurrentPosition());
+        drive_encoder.set(3,((PriorityMotor) robot.hardwareQueue.getDevice("frontLeft")).motor[0].getCurrentPosition());
 
         if((System.currentTimeMillis()-lastVoltageUpdatedTime)>voltageUpdateTime){
             voltage = robot.hardwareMap.voltageSensor.iterator().next().getVoltage();

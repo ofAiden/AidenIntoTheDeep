@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.utils.PID;
 public class Aidenhang {
 
     private AidenRobot robot;
-    private PriorityMotor ;
+    private PriorityMotor vslide;
     private nPriorityServo pto;
     private double[] vslide_multiplier = {1,-1};
     private DcMotorEx[] vslides = {robot.hardwareMap.get(DcMotorEx.class, "vslide1"), robot.hardwareMap.get(DcMotorEx.class, "vslide2")};
@@ -29,9 +29,13 @@ public class Aidenhang {
     public double hang_height;
     public boolean hang_ready = false;
 
+    public double engage_pto;
+    public double disengage_pto;
+
     public Aidenhang(AidenRobot robot) {
         this.robot = robot;
         vslide = new PriorityMotor(vslides, "vslide", 4, 5,vslide_multiplier, null);
+        pto = new nPriorityServo(new Servo[]{robot.hardwareMap.get(Servo.class, "wrist")}, "wrist", nPriorityServo.ServoType.AXON_MAX, 0, 1, 0.5, new boolean[]{false}, 3, 5);
         robot.hardwareQueue.addDevices(vslide);
     }
 
@@ -46,16 +50,20 @@ public class Aidenhang {
     public void update(){
         switch (hangStates){
             case IDLE:
+                set_pto(false);
                 //no clue
                 break;
 
             case HANG_READY:
+                set_pto(true);
                 if(hang_ready){
-                    hangStates = HangStates.HANG
+                    hangStates = HangStates.HANG;
                 }
                 break;
 
             case HANG:
+                robot.rightBack.setTargetPower(1);
+                robot.leftBack.setTargetPower(1);
                 set_vslides_pos(hang_height);
                 if(hang_height - vslides_current_pos<= 0.5){
                     hangStates = HangStates.HANG_RETRACT;
@@ -63,6 +71,7 @@ public class Aidenhang {
                 break;
 
             case HANG_RETRACT:
+                set_pto(false);
                 set_vslides_pos(vslide_zero);
                 break;
         }
@@ -73,5 +82,12 @@ public class Aidenhang {
         vslides_error = target_pos - vslides_current_pos;
 
         vslide.setTargetPower(vslidesPID.update(vslides_error, -1, 1));
+    }
+    public void set_pto(boolean state){
+        if(state){
+            pto.setTargetAngle(engage_pto);
+        } else {
+            pto.setTargetAngle(disengage_pto);
+        }
     }
 }
