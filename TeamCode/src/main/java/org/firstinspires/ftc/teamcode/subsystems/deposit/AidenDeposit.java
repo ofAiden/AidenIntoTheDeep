@@ -22,8 +22,6 @@ public class AidenDeposit {
 
 
     public static PID vslidesPID = new PID(1, 0,0); //needs to be tuned
-    public static PID armslidesPID = new PID(1, 0,0); //needs to be tuned
-
     //tune these variables for the positions that we find.
 
     public double pixel_y;
@@ -50,9 +48,7 @@ public class AidenDeposit {
     public double extendo_current_pos = robot.sensor.get_extendo_pos();
     public double vslides_deposit_pos;
 
-    public double current_vslides;
-    public double current_arm_angle;
-    public double current_extendo;
+    public double current_arm_angle, current_extendo, wrist_claw_distance, current_vslides, current_wrist_angle;
     public double current_x;
     public double current_y;
     public double theta;
@@ -109,12 +105,12 @@ public class AidenDeposit {
                 break;
             case DEPOSIT_SAMPLE_READY:
                 while (!deposit_ready) {
-                    this.updateDepositIK(sample_x,sample_y);
+                    this.updateDepositIK(sample_x,sample_y, false);
                 }
                 break;
             case DEPOSIT_PIXEL_READY:
                 while (!deposit_ready) {
-                    this.updateDepositIK(pixel_x,pixel_y);
+                    this.updateDepositIK(pixel_x,pixel_y, true);
                 }
                 break;
             case DEPOSIT_PIXEL:
@@ -146,15 +142,16 @@ public class AidenDeposit {
     public void set_arm_angle(double target_angle){ arm.setTargetAngle(target_angle);}
     public void set_claw_pos(double target_angle) { claw.setTargetAngle(target_angle);}
 
-    public void updateDepositIK(double target_x, double target_y) {
+    public void updateDepositIK(double target_x, double target_y, boolean pixel) {
         // 1. Read actual actuator positions
         current_vslides = robot.sensor.get_vslides_pos();
         current_arm_angle = arm.getCurrentAngle();
         current_extendo = slide.getCurrentAngle();
+        current_wrist_angle = wrist.getCurrentAngle();
 
         //2. Calculate the current X, and Y
-        current_y = current_vslides + Math.sin(current_arm_angle) * current_extendo;
-        current_x = Math.cos(current_arm_angle) * current_extendo;
+        current_y = current_vslides + Math.sin(current_arm_angle) * armslides_current_pos + wrist_claw_distance*Math.sin(current_wrist_angle);
+        current_x = Math.cos(current_arm_angle) * armslides_current_pos + wrist_claw_distance*Math.cos(current_wrist_angle);
 
         // 3. Recalculate positions from current state
         theta = Math.atan2((target_y-current_y),target_x-current_x);
@@ -165,6 +162,11 @@ public class AidenDeposit {
             set_vslides_pos(target_y*slide_ratio); //assuming that slides work by like doing a targety/2 after its movements.
             arm.setTargetPos(theta, 1); //assuming that the arm angle doesn't change
             set_armslides_pos(slide_distance); //assuming that the slides keep the previous, and add this onto it this is what i meant for the vslides too
+            if(pixel){
+                wrist.setTargetAngle(pi/2 - current_arm_angle);
+            } else{
+                wrist.setTargetAngle(-current_arm_angle);
+            }
         } else {
             deposit_ready = true;
         }
